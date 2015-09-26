@@ -34,23 +34,25 @@ userThree.balance = 10000;
 
 #Store all three users in one wanna-be database
 hardcodedDB = [userOne, userTwo, userThree]
-
+challengedStrings = []
 print "The server is ready to receive!"
 
 while(1):
+	print challengedStrings
 	request, clientAddress = serverSocket.recvfrom(2048)
+	#First step of a state-based check:
 	if (request == "I want to connect!"):
-		print "I see you wanna connect"
-		#Generates one-time use challenge value in the form of a 64 char string:
+		#Generates one-time use challenge value in the form of a 64 char string & adds it to challengeStrings array
 		challengeString = ''.join(random.choice(string.lowercase) for i in range(64))
+		challengedStrings.append(challengeString)
 		#Sends string to client:
 		serverSocket.sendto(challengeString, clientAddress)
-		print "Challenge string sent!: " + challengeString
+		print "DEBUG: Challenge string sent!: " + challengeString
 		#Receives computed hash in the form of a string
-		#DEBUG: Wait for 5 seconds:
-		#time.sleep(1)
-		usernameFromClient, clientAddress = serverSocket.recvfrom(2048)
-		hashOfChallenge, clientAddress = serverSocket.recvfrom(2048)
+		usernameFromClientAndHashDigest, clientAddress = serverSocket.recvfrom(2048)
+		usernameFromClientAndHashDigest = usernameFromClientAndHashDigest.split(":")
+		usernameFromClient = usernameFromClientAndHashDigest[0]
+		hashOfChallenge = usernameFromClientAndHashDigest[1]
 		print "DEBUG: username received is: " + usernameFromClient
 		#Server computes hash value with legit username and checks value with hash received
 		userFound = False
@@ -64,11 +66,16 @@ while(1):
 		if userFound != True:
 			print "Username was not found in our database"
 
+		#If username, password, and hash are correct
 		if (legitHash.hexdigest() == hashOfChallenge):
 			print "Authenticated"
-			accountAction, clientAddress = serverSocket.recvfrom(2048)
-			actionValue, clientAddress = serverSocket.recvfrom(2048)
+			accountActionAndValue, clientAddress = serverSocket.recvfrom(2048)
 			
+			accountActionAndValue = accountActionAndValue.split(':')
+			accountAction = accountActionAndValue[0]
+			actionValue = accountActionAndValue[1]
+			#No need for the challenge entry in our list, so remove it:
+			#challengedStrings.remove()
 			#Now to go through the account and withdraw/deposit
 			for user in hardcodedDB:
 				if user.username == usernameFromClient:

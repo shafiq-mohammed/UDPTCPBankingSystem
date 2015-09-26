@@ -27,15 +27,14 @@ print "DEBUG: received challenge!"
 #Note: Must send hash as a string because of sendto function limitations, so sent as string
 hashOfChallenge = hashlib.md5(username + password + challengeString)
 
-clientSocket.sendto(username, (serverName, serverPort))
-clientSocket.sendto(hashOfChallenge.hexdigest(), (serverName, serverPort))
+clientSocket.sendto(username + ":" + hashOfChallenge.hexdigest(), (serverName, serverPort))
+#clientSocket.sendto(hashOfChallenge.hexdigest(), (serverName, serverPort))
 #Now send the bank request, if we authenticate correctly it shall deposit/withdraw money from that account:
-clientSocket.sendto(accountAction, (serverName, serverPort))
-clientSocket.sendto(actionValue, (serverName, serverPort))
+clientSocket.sendto(accountAction + ":" + actionValue, (serverName, serverPort))
+#clientSocket.sendto(actionValue, (serverName, serverPort))
 
 
 print "DEBUG: Sent user, hash, and value to server!"
 
 
 clientSocket.close()
-s
