@@ -2,10 +2,11 @@ from socket import *
 import string
 import random
 import hashlib
-
+import time
+import sys
 #Specifies the port number of this server, creates a socket, and then binds a port
 #number to it, making this a server socket.
-serverPort = 12000
+serverPort = int(sys.argv[1])
 serverSocket = socket(AF_INET, SOCK_DGRAM);
 serverSocket.bind(('', serverPort))
 
@@ -17,12 +18,12 @@ class User(object):
 
 #Populate the class with users
 userOne = User()
-userOne.username = "Shafiq"
+userOne.username = "Fiqi"
 userOne.password = "Cat"
 userOne.balance = 100;
 
 userTwo = User()
-userTwo.username = "Huda"
+userTwo.username = "Hoodie"
 userTwo.password = "TaubaHain"
 userTwo.balance = 1000;
 
@@ -46,6 +47,8 @@ while(1):
 		serverSocket.sendto(challengeString, clientAddress)
 		print "Challenge string sent!: " + challengeString
 		#Receives computed hash in the form of a string
+		#DEBUG: Wait for 5 seconds:
+		#time.sleep(1)
 		usernameFromClient, clientAddress = serverSocket.recvfrom(2048)
 		hashOfChallenge, clientAddress = serverSocket.recvfrom(2048)
 		print "DEBUG: username received is: " + usernameFromClient
@@ -55,19 +58,39 @@ while(1):
 			if user.username == usernameFromClient:
 				legitHash = hashlib.md5(user.username + user.password + challengeString)
 				userFound = True
+
 		#If username don't exist in DB, then you exit session with user.
 		#TODO: Just randomly coded this for now, come back to it and fix this ish
 		if userFound != True:
 			print "Username was not found in our database"
-			
 
 		if (legitHash.hexdigest() == hashOfChallenge):
-			print "YO MAH NIGGA " + usernameFromClient + " YOU HAZ BEEN AUTHENTICATATED TURN UP!!!"
+			print "Authenticated"
+			accountAction, clientAddress = serverSocket.recvfrom(2048)
+			actionValue, clientAddress = serverSocket.recvfrom(2048)
+			
+			#Now to go through the account and withdraw/deposit
+			for user in hardcodedDB:
+				if user.username == usernameFromClient:
+				
+					if accountAction == "withdraw":
+						if user.balance >= int(actionValue):
+							user.balance = user.balance - int(actionValue)
+							print "Withdraw requested. Remaining balance for " + user.username + "is " + str(user.balance)
+						else:
+							print "Cannot perform requested withdrawal: Money in account is less than value you wish to withdraw"
+					
+					if accountAction == "deposit":
+						#Add money and return remaining balance
+						user.balance = user.balance + int(actionValue)
+						print "Withdraw requested. Remaining balance for " + user.username + "is " + str(user.balance)
+
 		else:
 			print "Incorrect pass. You iz stoop, get out my server."
 
 
-
-
-
 serverSocket.close()
+
+
+
+
