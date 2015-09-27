@@ -36,7 +36,7 @@ if debugFlag == "-d":
 #Note: Must send hash as a string because of sendto function limitations, so sent as string
 hashOfChallenge = hashlib.md5(username + password + challengeString)
 status = "response"
-time.sleep(3)
+#Used to test concurrent clients connecting at same time (remove after coding) time.sleep(3)
 clientSocket.sendto(status + ":" + username + ":" + hashOfChallenge.hexdigest() + ":" + accountAction + ":" + actionValue + ":" + challengeString, (serverName, serverPort))
 if debugFlag == "-d":	
 	print "DEBUG: Sent client the username, hash value, and the respective account action and value, along with the challenge string (For identification purpose of this assignment since we are sending all of our requests for one IP"

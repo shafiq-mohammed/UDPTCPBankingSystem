@@ -153,7 +153,7 @@ while(1):
 						print "****************************"
 		
 		else:
-			print "Incorrect pass. You are a fake, get out my server."
+			print "Incorrect password. User authorization failed"
 			if debugFlag == "-d":
 				print "DEBUG: I was looking for legit hash: " + legitHash.hexdigest()
 	#Big ol else statement I created to see if I could use with multiple concurrent users
