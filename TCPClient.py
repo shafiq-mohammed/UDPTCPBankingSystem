@@ -1,55 +1,55 @@
+#Name: Shafiq Mohammed
+
+#Import the respective libraries
 from socket import *
 import sys
+#importing the following allows us to use an MD5 Hash function from the hashlib library
+#example where I learned how to use md5 hash code:  http://rosettacode.org/wiki/MD5#Python
 import hashlib
 import time
 
-serverName = 'localhost'
-serverPort = 13000
-clientSocket = socket(AF_INET, SOCK_STREAM)
-clientSocket.connect((serverName, serverPort))
-
-
-#sentence = raw_input("Input lowercase shizniz: ")
-#time.sleep(2)
-#clientSocket.send(sentence)
-#modifiedSentence = clientSocket.recv(1024)
-#print "From server: ", modifiedSentence
-#clientSocket.close()
-
+#Takes the command line argument for the servername and the port, breaks it up into 
+#serverName and port, and maps it to respective variable
 firstArg   = sys.argv[1].split(':')
 serverName = firstArg[0]
 serverPort = int(firstArg[1])
 
+#Create a TCP socket and initiate connection request to the server
+clientSocket = socket(AF_INET, SOCK_STREAM)
+clientSocket.connect((serverName, serverPort))
 
+#Takes the arguments from the command line, and maps it to the respective variables:
 username = sys.argv[2]
 password = sys.argv[3]
 accountAction = sys.argv[4]
 actionValue = sys.argv[5]
 
-#Check for debug flag
+#Check for debug flag, if it is provided then debugFlag will be set with the flag
 try:
 	debugFlag = sys.argv[6]
 except:
 	debugFlag = ""
 
-#Sending over username and password for authentication
-clientSocket.send("I want to connect!" + ":" + username)
+#Sends an authentication request to the server
+clientSocket.send("I want to connect!")
 if debugFlag == "-d":	
 	print "DEBUG: Sent server a request to connect"
+
+#Listens for server to respond with a challenge string
 challengeString = clientSocket.recv(2048)
 if debugFlag == "-d":	
 	print "DEBUG: received challenge from server!"
 
-#Client has now received challenge, computes hash and sends username and hash to server:
-#Note: Must send hash as a string because of sendto function limitations, so sent as string
+#Computes hash of received challenge string with the username and password
 hashOfChallenge = hashlib.md5(username + password + challengeString)
-#May not need: status = "response"
-#Used to test concurrent clients connecting at same time (remove after coding) time.sleep(3)
-clientSocket.sendto(username + ":" + hashOfChallenge.hexdigest() + ":" + accountAction + ":" + actionValue, (serverName, serverPort))
+
+#Sends username, above computed hash, whether the user wants to withdraw or deposit money, and the amount
+clientSocket.send(username + ":" + hashOfChallenge.hexdigest() + ":" + accountAction + ":" + actionValue)
 if debugFlag == "-d":	
 	print "DEBUG: Sent client the username, hash value, and the respective account action and value, along with the challenge string"
 	print "DEBUG: Sent: " + username + ":" + hashOfChallenge.hexdigest() + ":" + accountAction + ":" + actionValue
 
+#Once we send the server the request, we will close our connection with the server
 clientSocket.close()
 if debugFlag == "-d":	
 	print "DEBUG: Socket connection closed."
